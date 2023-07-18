@@ -74,7 +74,17 @@ impl<T: ArrayBuilder> FixedSizeListBuilder<T> {
     /// `value_length` is the number of values within each array
     pub fn new(values_builder: T, value_length: i32) -> Self {
         let capacity = values_builder.len();
-        Self::with_capacity(values_builder, value_length, capacity)
+        Self::with_capacity(
+            values_builder,
+            value_length,
+            if value_length == 0 {
+                0
+            } else {
+                // Assuming `i32::MAX <= usize::MAX`, conversion failure should
+                // only be caused by negative `value_length`
+                capacity / usize::try_from(value_length).expect("Size cannot be negative")
+            },
+        )
     }
 
     /// Creates a new [`FixedSizeListBuilder`] from a given values array builder
